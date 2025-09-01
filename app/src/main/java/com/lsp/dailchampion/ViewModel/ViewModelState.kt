@@ -11,6 +11,7 @@ data class  TaskDataState(
     val title: String="",
     val description :String ="",
     val todayDate:String = "",
+    val id:Int = 0 ,
 
     val showDatePicker :Boolean = false,
     val loading: Boolean=false,
@@ -26,7 +27,9 @@ data class Feature(
 )
 
 data class TaskList(
+    val id:Int, 
     val title:String,
     val date : String,
-    val description :String
+    val description :String,
+    val isCompleted:Boolean
 )

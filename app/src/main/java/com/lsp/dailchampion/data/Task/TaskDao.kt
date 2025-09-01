@@ -11,13 +11,15 @@ interface TaskDao {
 @Upsert
 suspend  fun upsertTask(task : Task): Long
 @Delete
-suspend  fun deleteTask(task :Task)
+suspend  fun deleteTask(task :Task) : Int
 
 
-@Query("SELECT * FROM task_table ORDER BY title ASC")
+@Query("SELECT * FROM task_table ORDER BY date ASC")
 
  fun getTaskSortedByName(): Flow<List<Task>>
 
+ @Query("SELECT * FROM task_table WHERE date =:date And isCompleted = 0")
+ fun getTaskByDate(date: String):Flow<List<Task>>
 }
 
 

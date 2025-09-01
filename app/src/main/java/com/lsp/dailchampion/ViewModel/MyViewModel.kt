@@ -1,5 +1,6 @@
 package com.lsp.dailchampion.ViewModel
 
+import android.annotation.SuppressLint
 import android.icu.util.Calendar
 import android.util.Log
 import androidx.compose.ui.graphics.Color
@@ -12,12 +13,17 @@ import com.lsp.dailchampion.data.Task.Task
 import com.lsp.dailchampion.data.Task.TaskDatabase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -39,6 +45,19 @@ private  val _taskState = MutableStateFlow(TaskDataState())
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val taskListByDate : StateFlow<List<TaskList>> = taskState.map { it.todayDate }
+        .distinctUntilChanged()
+        .flatMapLatest {date->
+            taskRepository.getTaskByDate(date = date)
+        }
+    .stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
     fun getGreetingMessage() :String{
         val hours = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
         return  when(hours){
@@ -101,15 +120,13 @@ private  val _taskState = MutableStateFlow(TaskDataState())
 
     }
     fun createTask(){
-        Log.d("TAG","Message: Working}")
+
         viewModelScope.launch {
             toggleLoading()
             try {
-            val task = Task(title = taskState.value.title, date = taskState.value.todayDate, description = taskState.value.description)
+            val task = Task(title = taskState.value.title, date = taskState.value.todayDate, description = taskState.value.description, isCompleted = false)
                val  response = taskRepository.createTask(task = task);
-                Log.d("TAG","Message: $task}")
                 if(response>0){
-                    Log.d("TAG","Message: Task Added Successfully}")
                     toggleLoading()
                     _taskState.update { it->
                         it.copy(
@@ -120,7 +137,7 @@ private  val _taskState = MutableStateFlow(TaskDataState())
                     clearState()
                 }
                 else{
-                    Log.d("TAG","!ERROR}")
+
                     toggleLoading()
                     _taskState.update { it->
                         it.copy(
@@ -136,13 +153,81 @@ private  val _taskState = MutableStateFlow(TaskDataState())
     }
 
 
+    fun updateTask(){
+        viewModelScope.launch {
+            toggleLoading()
+            try {
+            val task = Task(id =  taskState.value.id , title = taskState.value.title , description = taskState.value.description, date = taskState.value.todayDate, isCompleted = false);
+
+                val response = taskRepository.createTask(task);
+                if (response > 0){
+                    toggleLoading()
+                    _taskState.update { it->
+                        it.copy(
+                            message = "Task Updated Successfully"
+                        )
+                    }
+                    delay(2000)
+                    _taskState.update { it->
+                        it.copy(
+                            message = ""
+                        )
+                    }
+                }else{
+
+                    toggleLoading()
+                    _taskState.update { it->
+                        it.copy(
+                            message = "Error"
+                        )
+                    }
+                }
+            }catch (e: Exception){}
+
+        }
+    }
+
+    @SuppressLint("SuspiciousIndentation")
+    fun deleteTask(){
+        viewModelScope.launch {
+            try {
+                toggleLoading()
+                val task = Task(id =  taskState.value.id , title = taskState.value.title , description = taskState.value.description, date = taskState.value.todayDate, isCompleted = false);
+            val response = taskRepository.deleteTask(task);
+                if (response>0){
+                        toggleLoading();
+                    clearState()
+
+                }
+                else{
+                    toggleLoading();
+                    _taskState.update { it->
+                        it.copy(
+                            message = "Error"
+                        )
+                    }
+                }
+            }catch (e: Exception){
+                Log.d("TAG","${e.localizedMessage}")
+            }
+        }
+    }
+
+
+    fun updateID(id:Int){
+        _taskState.update {it->
+            it.copy(
+                id = id
+            )
+        }
+    }
 
     fun clearState(){
         _taskState.update { it->
             it.copy(
                 title = "",
                 description = "",
-                todayDate = "",
+
                 message = "",
                 showDatePicker = false
             )

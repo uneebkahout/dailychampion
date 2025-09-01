@@ -4,20 +4,30 @@ import androidx.compose.foundation.Image
 import com.lsp.dailchampion.ui.theme.Poppins
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -60,6 +70,9 @@ LaunchedEffect(taskState.showDatePicker) {
         dateDialogSate.show();
     }
 }
+    LaunchedEffect(Unit) {
+        viewModel.updateTodayDate(date = LocalDate.now().toString())
+    }
 
     MaterialDialog(
         dialogState =dateDialogSate,
@@ -90,7 +103,8 @@ LaunchedEffect(taskState.showDatePicker) {
                 shadowElevation = 8.dp,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp)
+                    .clip(
+                        RoundedCornerShape(16.dp)
                     )
             ) {
                 Column(
@@ -142,7 +156,10 @@ LaunchedEffect(taskState.showDatePicker) {
                                     .tabIndicatorOffset(tabPositions[selectedTabIndex])
                                     .height(4.dp)
                                     .padding(start = 15.dp, end = 15.dp)
-                                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(4.dp))
+                                    .background(
+                                        MaterialTheme.colorScheme.primary,
+                                        RoundedCornerShape(4.dp)
+                                    )
                             )
                         }
                     ) {
@@ -307,24 +324,126 @@ fun TodayTask(modifier: Modifier = Modifier,
               viewModel: MyViewModel,
 
 ) {
-    val taskList by viewModel.taskList.collectAsState()
+    val taskList by viewModel.taskListByDate.collectAsState()
+    var showEditDialogue by remember { mutableStateOf(false) }
+    var showDeleteDialogue by remember { mutableStateOf(false) }
+
     Box(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp),
     ) {
-        LazyColumn {
-            items(taskList){task->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(taskList) { task ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(8.dp, RoundedCornerShape(20.dp)),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Column {
+                        // Gradient top strip
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(6.dp)
+//
+                        )
 
-                Card(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(task.title, fontWeight = FontWeight.Bold)
-                        Text(task.description)
-                        Text(task.date, fontSize = 12.sp, color = Color.Gray)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(
+                                    text = task.title,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp,
+                                    color = Color(0xFF191C24)
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = task.description,
+                                    fontSize = 14.sp,
+                                    color = Color.Gray
+                                )
+
+                                Spacer(modifier = Modifier.height(12.dp))
+
+
+                            }
+
+                            // Action buttons
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                IconButton(
+                                    onClick = { showEditDialogue = true
+                                        viewModel.updateID(id = task.id)
+                                        viewModel.updateTitle(title = task.title)
+                                        viewModel.updateDescription(description = task.description)
+
+                                              },
+                                    modifier = Modifier
+                                        .background(Color(0xFF0D6EFD), shape = CircleShape)
+                                        .size(38.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = "Edit",
+                                        tint = Color.White
+                                    )
+                                }
+
+                                IconButton(
+                                    onClick = { showDeleteDialogue=true
+                                        viewModel.updateID(id = task.id)
+                                        viewModel.updateTitle(title = task.title)
+                                        viewModel.updateDescription(description = task.description)
+                                              },
+                                    modifier = Modifier
+                                        .background(Color(0xFFAB2E3C), shape = CircleShape)
+                                        .size(38.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Delete",
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+
+                        }
                     }
+                }
+                if (showEditDialogue){
+                    EditTaskDialogue(viewModel = viewModel,
+
+                        onDismiss = {
+                            showEditDialogue = false }
+                    )
+
+                }
+                if (showDeleteDialogue){
+                    DeleteTask(viewModel=viewModel , onDismiss = {showDeleteDialogue = false})
+                }
             }
+
         }
-    }
+
+
     }
     }
 
@@ -339,4 +458,153 @@ fun CompletedTask(modifier: Modifier = Modifier) {
     ) {
         Text("Completed tasks will be shown here.")
     }
+}
+
+
+@Composable
+fun EditTaskDialogue(
+    viewModel: MyViewModel,
+
+    onDismiss :  () -> Unit
+) {
+    val focusManager = LocalFocusManager.current;
+    val taskState by viewModel.taskState.collectAsState()
+    AlertDialog(
+        modifier = Modifier. pointerInput(Unit){
+            detectTapGestures(onTap = {
+                focusManager.clearFocus()
+            })},
+        onDismissRequest = {
+            onDismiss()
+        },
+        title = {Text(text = "Edit Text", fontFamily = Poppins)},
+        confirmButton = {
+            TextButton(onClick = {
+                viewModel.updateTask()
+                onDismiss()
+            }) {
+                Text(text = "Save", fontFamily = Poppins)
+            }
+
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                onDismiss()
+            }) {
+                Text(text = "Cancel", fontFamily = Poppins)
+            }
+        },
+        text = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = {
+                            focusManager.clearFocus()
+                        })
+                    }
+            ){
+                Column {
+                    OutlinedTextField(
+                        value = taskState.title,
+                        onValueChange = { viewModel.updateTitle(it) },
+                        placeholder = {
+                            Text(
+                                text = "Enter Title",
+                                fontFamily = Poppins,
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = "Title",
+                                fontFamily = Poppins,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 14.sp
+                            )
+                        },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp)) // rounded corners
+                            .padding(vertical = 4.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                            cursorColor = MaterialTheme.colorScheme.primary,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        ),
+                        textStyle = LocalTextStyle.current.copy(
+                            fontFamily = Poppins,
+                            fontSize = 14.sp
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    OutlinedTextField(
+                        value = taskState.description ,
+                        onValueChange = { viewModel.updateDescription(it) },
+                        placeholder = { Text("Enter Description", fontFamily = Poppins) },
+                        label = { Text("Description", fontFamily = Poppins) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                            focusedLabelColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                }
+            }
+
+        }
+
+    )
+}
+
+
+@Composable
+fun DeleteTask(
+    viewModel: MyViewModel,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(onDismissRequest = {onDismiss()},
+        title = {
+            Text(text = "Delete Task")
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    viewModel.deleteTask();
+                    onDismiss();
+                }
+            ) {
+                Text(text = "Delete", fontFamily = Poppins)
+            }
+
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                onDismiss()
+            }) {
+                Text(text = "Cancel", fontFamily = Poppins)
+
+            }
+
+        },
+        text = {
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ){
+                Text("Are you sure you to want to delete Task")
+            }
+
+        }
+
+    )
+
 }
