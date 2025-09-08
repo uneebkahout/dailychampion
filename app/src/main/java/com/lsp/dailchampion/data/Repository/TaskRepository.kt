@@ -29,4 +29,10 @@ class TaskRepository @Inject constructor(
     suspend fun  deleteTask(task: Task): Int{
         return taskDao.deleteTask(task = task);
     }
+    suspend fun  completeTask(id: List<Int>){
+        return taskDao.completeTask(id = id);
+    }
+    suspend fun  getCompleteTask(date: String): Flow<List<TaskList>>{
+        return taskDao.getCompletedTas(date = date);
+    }
 }

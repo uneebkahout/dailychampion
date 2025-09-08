@@ -1,10 +1,12 @@
 package com.lsp.dailchampion.Presentaion.Screen
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import com.lsp.dailchampion.ui.theme.Poppins
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +19,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -30,6 +34,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -188,9 +193,6 @@ LaunchedEffect(taskState.showDatePicker) {
 
                 modifier = Modifier
                     .fillMaxSize()
-//                    .padding(horizontal = 16.dp),
-//                shape = RoundedCornerShape(16.dp),
-//                tonalElevation = 4.dp
             ) {
                 when (selectedTabIndex) {
                     0 -> AddTask(
@@ -200,9 +202,11 @@ LaunchedEffect(taskState.showDatePicker) {
                     1 -> TodayTask(
                         viewModel=viewModel
                     )
-                    2 -> CompletedTask()
+                    2 -> CompletedTask(viewModel = viewModel)
                 }
             }
+
+
         }
     }
 }
@@ -211,7 +215,7 @@ LaunchedEffect(taskState.showDatePicker) {
 fun AddTask(
     viewModel: MyViewModel,
     taskState: TaskDataState,
-    onNextClicked: () -> Unit = {}) {
+    ) {
 
     val scrollState = rememberScrollState()
 
@@ -319,146 +323,10 @@ fun AddTask(
 
 
 
-@Composable
-fun TodayTask(modifier: Modifier = Modifier,
-              viewModel: MyViewModel,
-
-) {
-    val taskList by viewModel.taskListByDate.collectAsState()
-    var showEditDialogue by remember { mutableStateOf(false) }
-    var showDeleteDialogue by remember { mutableStateOf(false) }
-
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(taskList) { task ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(8.dp, RoundedCornerShape(20.dp)),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Column {
-                        // Gradient top strip
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(6.dp)
-//
-                        )
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(
-                                    text = task.title,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 20.sp,
-                                    color = Color(0xFF191C24)
-                                )
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text(
-                                    text = task.description,
-                                    fontSize = 14.sp,
-                                    color = Color.Gray
-                                )
-
-                                Spacer(modifier = Modifier.height(12.dp))
 
 
-                            }
-
-                            // Action buttons
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                IconButton(
-                                    onClick = { showEditDialogue = true
-                                        viewModel.updateID(id = task.id)
-                                        viewModel.updateTitle(title = task.title)
-                                        viewModel.updateDescription(description = task.description)
-
-                                              },
-                                    modifier = Modifier
-                                        .background(Color(0xFF0D6EFD), shape = CircleShape)
-                                        .size(38.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Edit,
-                                        contentDescription = "Edit",
-                                        tint = Color.White
-                                    )
-                                }
-
-                                IconButton(
-                                    onClick = { showDeleteDialogue=true
-                                        viewModel.updateID(id = task.id)
-                                        viewModel.updateTitle(title = task.title)
-                                        viewModel.updateDescription(description = task.description)
-                                              },
-                                    modifier = Modifier
-                                        .background(Color(0xFFAB2E3C), shape = CircleShape)
-                                        .size(38.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = "Delete",
-                                        tint = Color.White
-                                    )
-                                }
-                            }
-
-                        }
-                    }
-                }
-                if (showEditDialogue){
-                    EditTaskDialogue(viewModel = viewModel,
-
-                        onDismiss = {
-                            showEditDialogue = false }
-                    )
-
-                }
-                if (showDeleteDialogue){
-                    DeleteTask(viewModel=viewModel , onDismiss = {showDeleteDialogue = false})
-                }
-            }
-
-        }
 
 
-    }
-    }
-
-
-@Composable
-fun CompletedTask(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text("Completed tasks will be shown here.")
-    }
-}
 
 
 @Composable
@@ -489,6 +357,8 @@ fun EditTaskDialogue(
         },
         dismissButton = {
             TextButton(onClick = {
+                viewModel.updateTitle(title = "")
+                viewModel.updateDescription(description = "")
                 onDismiss()
             }) {
                 Text(text = "Cancel", fontFamily = Poppins)

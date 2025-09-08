@@ -39,6 +39,22 @@ private  val _taskState = MutableStateFlow(TaskDataState())
     val state = _state.asStateFlow()
 
 
+    private val _selectedTaskID = MutableStateFlow<List<Int>>(emptyList());
+    val selectedTaskID   = _selectedTaskID.asStateFlow();
+
+
+    fun toggleTaskID(taskID:Int) {
+        _selectedTaskID.value = _selectedTaskID.value.toMutableList().also { task->
+            if (taskID in task){
+                task.remove(taskID)
+            }
+            else{
+                task.add(taskID);
+            }
+
+        }
+    }
+
     val taskList: StateFlow<List<TaskList>> = taskRepository.getTask()
         .stateIn(
             scope = viewModelScope,
@@ -58,6 +74,18 @@ private  val _taskState = MutableStateFlow(TaskDataState())
         initialValue = emptyList()
     )
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val completedTask :StateFlow<List<TaskList>> = taskState.map { it.todayDate }
+        .distinctUntilChanged()
+        .flatMapLatest {date->
+            taskRepository.getCompleteTask(date = date)
+
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
     fun getGreetingMessage() :String{
         val hours = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
         return  when(hours){
@@ -111,6 +139,12 @@ private  val _taskState = MutableStateFlow(TaskDataState())
         }
     }
 
+    fun completeTask(){
+        viewModelScope.launch {
+            taskRepository.completeTask(id = selectedTaskID.value)
+        }
+
+    }
     fun toggleLoading(){
         _taskState.update { it->
             it.copy(
@@ -170,7 +204,9 @@ private  val _taskState = MutableStateFlow(TaskDataState())
                     delay(2000)
                     _taskState.update { it->
                         it.copy(
-                            message = ""
+                            message = "",
+                            title = "",
+                            description = ""
                         )
                     }
                 }else{
