@@ -1,6 +1,7 @@
 package com.lsp.dailchampion.ViewModel
 
 import android.icu.text.CaseMap
+import androidx.compose.foundation.MutatePriority
 import androidx.compose.ui.graphics.Color
 
 data class ViewModelState (
@@ -11,14 +12,17 @@ data class  TaskDataState(
     val title: String="",
     val description :String ="",
     val todayDate:String = "",
-    val id:Int = 0 ,
+    val taskPriority: String = "",
+    val message:String="",
+    val id:Int = 0,
 
     val showDatePicker :Boolean = false,
     val loading: Boolean=false,
+    val showDropDownMenu : Boolean =false,
 
-    val message:String=""
 
-)
+
+    )
 data class Feature(
     val name: String,
     val emoji: String,
@@ -31,5 +35,7 @@ data class TaskList(
     val title:String,
     val date : String,
     val description :String,
+    val taskPriority: String,
+
     val isCompleted:Boolean
 )

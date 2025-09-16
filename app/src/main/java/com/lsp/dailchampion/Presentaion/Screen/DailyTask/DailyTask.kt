@@ -1,40 +1,28 @@
-package com.lsp.dailchampion.Presentaion.Screen
+package com.lsp.dailchampion.Presentaion.Screen.DailyTask
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import com.lsp.dailchampion.ui.theme.Poppins
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -200,7 +188,7 @@ LaunchedEffect(taskState.showDatePicker) {
                         taskState =taskState
                     )
                     1 -> TodayTask(
-                        viewModel=viewModel
+                        viewModel = viewModel
                     )
                     2 -> CompletedTask(viewModel = viewModel)
                 }
@@ -215,9 +203,9 @@ LaunchedEffect(taskState.showDatePicker) {
 fun AddTask(
     viewModel: MyViewModel,
     taskState: TaskDataState,
-    ) {
-
+) {
     val scrollState = rememberScrollState()
+    val taskPriority = viewModel.taskPriority
 
     Column(
         modifier = Modifier
@@ -226,106 +214,99 @@ fun AddTask(
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // Title Field
+        OutlinedTextField(
+            value = taskState.title,
+            onValueChange = { viewModel.updateTitle(it) },
+            placeholder = { Text("Enter Title", fontFamily = Poppins) },
+            label = { Text("Title", fontFamily = Poppins) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+            )
+        )
 
-
-
-
-                OutlinedTextField(
-                    value = taskState.title,
-                    onValueChange = { viewModel.updateTitle(it) },
-                    placeholder = {
-                        Text(
-                            text = "Enter Title",
-                            fontFamily = Poppins,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                        )
-                    },
-                    label = {
-                        Text(
-                            text = "Title",
-                            fontFamily = Poppins,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 14.sp
-                        )
-                    },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp)) // rounded corners
-                        .padding(vertical = 4.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        cursorColor = MaterialTheme.colorScheme.primary,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    ),
-                    textStyle = LocalTextStyle.current.copy(
-                        fontFamily = Poppins,
-                        fontSize = 14.sp
-                    ),
-                    shape = RoundedCornerShape(12.dp)
+        // Priority Dropdown
+        Box {
+            OutlinedTextField(
+                value = taskState.taskPriority, // show selected priority
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Category", fontFamily = Poppins) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { viewModel.toggleDropDown() }, // toggle menu
+                shape = RoundedCornerShape(12.dp),
+                trailingIcon = {
+                    Icon(imageVector = Icons.Filled.KeyboardArrowDown, contentDescription = null)
+                },
+                enabled = false, // disable keyboard input
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                    disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
+            )
 
-
-                OutlinedTextField(
-                    value = taskState.description ,
-                    onValueChange = { viewModel.updateDescription(it) },
-                    placeholder = { Text("Enter Description", fontFamily = Poppins) },
-                    label = { Text("Description", fontFamily = Poppins) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                        focusedLabelColor = MaterialTheme.colorScheme.primary
+            DropdownMenu(
+                expanded = taskState.showDropDownMenu,
+                onDismissRequest = { viewModel.toggleDropDown() }
+            ) {
+                taskPriority.forEach { task ->
+                    DropdownMenuItem(
+                        text = { Text(text = task) },
+                        onClick = {
+                            viewModel.setTaskPriority(task)
+                            viewModel.toggleDropDown()
+                        }
                     )
-                )
+                }
+            }
+        }
 
-
-
-        Row(
+        // Description Field
+        OutlinedTextField(
+            value = taskState.description,
+            onValueChange = { viewModel.updateDescription(it) },
+            placeholder = { Text("Enter Description", fontFamily = Poppins) },
+            label = { Text("Description", fontFamily = Poppins) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 25.dp),
+                .height(120.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+            )
+        )
+
+        // Buttons
+        Row(
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Button(
-                enabled = taskState.title.isNotBlank() || taskState.todayDate.isNotBlank() || taskState.description.isNotBlank(),
-                onClick = {viewModel.clearState()},
+                enabled = taskState.title.isNotBlank() || taskState.description.isNotBlank() || taskState.taskPriority.isNotBlank(),
+                onClick = { viewModel.clearState() },
                 modifier = Modifier.width(120.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onSurface)
             ) {
-                Text(text = "Clear Task")
+                Text("Clear Task")
             }
             Button(
                 enabled = taskState.title.isNotBlank() && taskState.todayDate.isNotBlank(),
-                onClick = {viewModel.createTask()},
+                onClick = { viewModel.createTask() },
                 modifier = Modifier.width(120.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onSurface)
             ) {
-                Text(text = "Add Task")
+                Text("Add Task")
             }
-
         }
-
-            }
-
-
-
-
-
-
     }
-
-
-
-
-
-
+}
 
 
 
@@ -337,6 +318,7 @@ fun EditTaskDialogue(
 ) {
     val focusManager = LocalFocusManager.current;
     val taskState by viewModel.taskState.collectAsState()
+    val taskPriority = viewModel.taskPriority
     AlertDialog(
         modifier = Modifier. pointerInput(Unit){
             detectTapGestures(onTap = {
@@ -374,7 +356,9 @@ fun EditTaskDialogue(
                         })
                     }
             ){
-                Column {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
                     OutlinedTextField(
                         value = taskState.title,
                         onValueChange = { viewModel.updateTitle(it) },
@@ -412,6 +396,44 @@ fun EditTaskDialogue(
                         ),
                         shape = RoundedCornerShape(12.dp)
                     )
+
+                    // Priority Dropdown
+                    Box {
+                        OutlinedTextField(
+                            value = taskState.taskPriority, // show selected priority
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Category", fontFamily = Poppins) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { viewModel.toggleDropDown() }, // toggle menu
+                            shape = RoundedCornerShape(12.dp),
+                            trailingIcon = {
+                                Icon(imageVector = Icons.Filled.KeyboardArrowDown, contentDescription = null)
+                            },
+                            enabled = false, // disable keyboard input
+                            colors = OutlinedTextFieldDefaults.colors(
+                                disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                                disabledBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                                disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                        )
+
+                        DropdownMenu(
+                            expanded = taskState.showDropDownMenu,
+                            onDismissRequest = { viewModel.toggleDropDown() }
+                        ) {
+                            taskPriority.forEach { task ->
+                                DropdownMenuItem(
+                                    text = { Text(text = task) },
+                                    onClick = {
+                                        viewModel.setTaskPriority(task)
+                                        viewModel.toggleDropDown()
+                                    }
+                                )
+                            }
+                        }
+                    }
                     Spacer(modifier = Modifier.height(10.dp))
                     OutlinedTextField(
                         value = taskState.description ,

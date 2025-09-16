@@ -1,4 +1,4 @@
-package com.lsp.dailchampion.Presentaion.Screen
+package com.lsp.dailchampion.Presentaion.Screen.DailyTask
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -28,8 +28,6 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -196,6 +194,7 @@ fun UnCompleteTaskCard(
                             showEditDialogue = true
                             viewModel.updateID(id = task.id)
                             viewModel.updateTitle(title = task.title)
+                            viewModel.setTaskPriority(task = task.taskPriority)
                             viewModel.updateDescription(description = task.description)
                         },
                         modifier = Modifier
@@ -216,6 +215,7 @@ fun UnCompleteTaskCard(
                             showDeleteDialogue = true
                             viewModel.updateID(id = task.id)
                             viewModel.updateTitle(title = task.title)
+                            viewModel.setTaskPriority(task = task.taskPriority)
                             viewModel.updateDescription(description = task.description)
                         },
                         modifier = Modifier

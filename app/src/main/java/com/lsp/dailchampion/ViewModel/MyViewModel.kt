@@ -86,6 +86,19 @@ private  val _taskState = MutableStateFlow(TaskDataState())
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+
+        @OptIn(ExperimentalCoroutinesApi::class)
+        val homeScreenTask : StateFlow<List<TaskList>> = taskState.map { it.todayDate }
+            .distinctUntilChanged()
+            .flatMapLatest { date->
+                taskRepository.getHomeScreenTask(date = date)
+            } .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyList()
+            )
+
     fun getGreetingMessage() :String{
         val hours = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
         return  when(hours){
@@ -95,6 +108,7 @@ private  val _taskState = MutableStateFlow(TaskDataState())
             else -> "Good Night"
         }
     }
+        val taskPriority : List<String> = listOf("Normal", "Notification", "Home Screen")
 
     fun updateGreetingMessage(){
         _state.update {it->
@@ -158,7 +172,7 @@ private  val _taskState = MutableStateFlow(TaskDataState())
         viewModelScope.launch {
             toggleLoading()
             try {
-            val task = Task(title = taskState.value.title, date = taskState.value.todayDate, description = taskState.value.description, isCompleted = false)
+            val task = Task(title = taskState.value.title, date = taskState.value.todayDate, description = taskState.value.description, taskPriority = taskState.value.taskPriority,isCompleted = false)
                val  response = taskRepository.createTask(task = task);
                 if(response>0){
                     toggleLoading()
@@ -191,8 +205,10 @@ private  val _taskState = MutableStateFlow(TaskDataState())
         viewModelScope.launch {
             toggleLoading()
             try {
-            val task = Task(id =  taskState.value.id , title = taskState.value.title , description = taskState.value.description, date = taskState.value.todayDate, isCompleted = false);
-
+            val task = Task(id =  taskState.value.id , title = taskState.value.title ,
+                description = taskState.value.description,
+                taskPriority = taskState.value.taskPriority,
+                date = taskState.value.todayDate, isCompleted = false);
                 val response = taskRepository.createTask(task);
                 if (response > 0){
                     toggleLoading()
@@ -228,7 +244,12 @@ private  val _taskState = MutableStateFlow(TaskDataState())
         viewModelScope.launch {
             try {
                 toggleLoading()
-                val task = Task(id =  taskState.value.id , title = taskState.value.title , description = taskState.value.description, date = taskState.value.todayDate, isCompleted = false);
+                val task = Task(id =  taskState.value.id , title = taskState.value.title ,
+
+                    description = taskState.value.description,
+                    date = taskState.value.todayDate,
+                    taskPriority = taskState.value.taskPriority,
+                    isCompleted = false);
             val response = taskRepository.deleteTask(task);
                 if (response>0){
                         toggleLoading();
@@ -263,10 +284,31 @@ private  val _taskState = MutableStateFlow(TaskDataState())
             it.copy(
                 title = "",
                 description = "",
+                taskPriority = "",
 
                 message = "",
                 showDatePicker = false
             )
         }
     }
+
+
+    fun toggleDropDown(){
+        _taskState.update { it->
+            it.copy(
+                showDropDownMenu = !it.showDropDownMenu
+            )
+        }
+    }
+
+    fun setTaskPriority(task:String){
+        _taskState.update { it->
+            it.copy(
+                taskPriority = task
+            )
+        }
+
+    }
+
+
 }

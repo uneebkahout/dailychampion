@@ -15,14 +15,19 @@ class TaskRepository @Inject constructor(
     }
     fun getTask(): Flow<List<TaskList>> {
         return taskDao.getTaskSortedByName().map { entities ->
-            entities.map { TaskList(it.id,it.title, it.date, it.description, it.isCompleted) }
+            entities.map { TaskList(it.id,it.title, it.date, it.description,it.taskPriority ,it.isCompleted) }
         }
     }
 
     fun getTaskByDate(date:String): Flow<List<TaskList>>{
         return taskDao.getTaskByDate(date = date).map { entites->
 
-            entites.map { TaskList(it.id,it.title,it.date,it.description, it.isCompleted) }
+            entites.map { TaskList(it.id,it.title,it.date,it.description, it.taskPriority,it.isCompleted) }
+        }
+    }
+    fun getHomeScreenTask(date:String): Flow<List<TaskList>>{
+        return  taskDao.getHomeScreenTask(date = date).map { entities->
+            entities.map { TaskList(id = it.id, title = it.title, date = it.date, description = it.description, taskPriority = it.taskPriority, isCompleted = it.isCompleted) }
         }
     }
 

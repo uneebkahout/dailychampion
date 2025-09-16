@@ -9,6 +9,7 @@ data class Task(
     val title:String,
     val date : String,
     val description :String ,
+val taskPriority:String,
     val isCompleted:Boolean
 
 )

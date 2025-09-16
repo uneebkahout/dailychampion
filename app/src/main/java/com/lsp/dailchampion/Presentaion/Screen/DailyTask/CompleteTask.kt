@@ -1,4 +1,4 @@
-package com.lsp.dailchampion.Presentaion.Screen
+package com.lsp.dailchampion.Presentaion.Screen.DailyTask
 
 
 import androidx.compose.animation.animateColorAsState
@@ -41,7 +41,6 @@ import com.lsp.dailchampion.ViewModel.TaskList
 
 @Composable
 fun CompletedTask(viewModel: MyViewModel) {
-
     val completeTask by viewModel.completedTask.collectAsState()
 
     LazyColumn (

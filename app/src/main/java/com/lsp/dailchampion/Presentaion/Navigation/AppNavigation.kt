@@ -6,7 +6,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 
-import com.lsp.dailchampion.Presentaion.Screen.DailyTask
+import com.lsp.dailchampion.Presentaion.Screen.DailyTask.DailyTask
 import com.lsp.dailchampion.Presentaion.Screen.HomePage
 
 @Composable

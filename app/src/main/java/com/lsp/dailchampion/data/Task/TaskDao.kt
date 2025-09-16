@@ -22,6 +22,8 @@ suspend  fun deleteTask(task :Task) : Int
  @Query("SELECT * FROM task_table WHERE date =:date And isCompleted = 0")
  fun getTaskByDate(date: String):Flow<List<Task>>
 
+ @Query("SELECT * FROM task_table where date=:date and taskPriority ='Home Screen' ")
+ fun getHomeScreenTask(date:String): Flow<List<Task>>;
 
  @Query("UPDATE task_table SET isCompleted = 1 where id in  (:id)")
 suspend  fun completeTask(id: List<Int>);
