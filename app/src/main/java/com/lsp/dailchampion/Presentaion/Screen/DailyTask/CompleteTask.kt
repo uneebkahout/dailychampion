@@ -62,7 +62,7 @@ fun CompletedTask(viewModel: MyViewModel) {
 }
 
 @Composable
-fun CompleteTaskCard(modifier: Modifier = Modifier ,  task: TaskList) {
+fun CompleteTaskCard(  task: TaskList) {
     var isExpanded by remember { mutableStateOf(false) }
     val backgroundColor by animateColorAsState(
         Color.White,

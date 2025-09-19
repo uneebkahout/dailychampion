@@ -68,6 +68,7 @@ import com.lsp.dailchampion.R
 import com.lsp.dailchampion.ViewModel.Feature
 import com.lsp.dailchampion.ViewModel.MyViewModel
 import com.lsp.dailchampion.ui.theme.Poppins
+import java.time.LocalDate
 
 
 @Composable
@@ -76,6 +77,7 @@ fun HomePage(
 ) {
     val viewModel : MyViewModel = hiltViewModel()
     LaunchedEffect(Unit) {
+        viewModel.updateTodayDate(date =  LocalDate.now().toString())
         viewModel.updateGreetingMessage()
     }
     Scaffold(

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,6 +24,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -32,16 +33,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.lsp.dailchampion.ViewModel.MyViewModel
 
 
-data class Task(
-    val id: Int,
-    val name: String,
-    val time: String,
-    val isCompleted: Boolean = false
-)
+import com.lsp.dailchampion.ViewModel.TaskList
+
 @Composable
-fun TaskSliderRow(tasks: List<Task>) {
+fun TaskSliderRow(tasks: List<TaskList>) {
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -54,7 +53,7 @@ fun TaskSliderRow(tasks: List<Task>) {
     }
 }
 @Composable
-fun TaskCard(task: Task) {
+fun TaskCard(task: TaskList) {
     Card(
         modifier = Modifier
             .width(220.dp)
@@ -85,7 +84,7 @@ fun TaskCard(task: Task) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = task.name,
+                        text = task.title,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -98,20 +97,7 @@ fun TaskCard(task: Task) {
                     )
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Filled.AccessTime,
-                        contentDescription = "Time",
-                        tint = Color.Gray,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = task.time,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.DarkGray
-                    )
-                }
+
             }
         }
     }
@@ -121,13 +107,8 @@ fun TaskCard(task: Task) {
 
 @Composable
 fun TaskSliderScreen() {
-    val tasks = listOf(
-        Task(1, "Read Book", "9:00 AM"),
-        Task(2, "Workout", "10:30 AM"),
-        Task(3, "Meeting", "1:00 PM"),
-        Task(4, "Project Work", "3:00 PM"),
-        Task(5, "Dinner", "8:00 PM")
-    )
+  val viewModel: MyViewModel = hiltViewModel()
+    val homeScreenTask by viewModel.homeScreenTask.collectAsState()
 
     Column {
         Text(
@@ -135,6 +116,6 @@ fun TaskSliderScreen() {
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(start = 16.dp, top = 16.dp)
         )
-        TaskSliderRow(tasks = tasks)
+        TaskSliderRow(tasks = homeScreenTask)
     }
 }

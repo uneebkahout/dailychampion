@@ -1,5 +1,6 @@
 package com.lsp.dailchampion.Presentaion.Screen.DailyTask
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import com.lsp.dailchampion.ui.theme.Poppins
 import androidx.compose.foundation.background
@@ -20,12 +21,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.lsp.dailchampion.Presentaion.Services.createNotificationChannel
+import com.lsp.dailchampion.Presentaion.Services.showNotification
 import com.lsp.dailchampion.R
 import com.lsp.dailchampion.ViewModel.MyViewModel
 import com.lsp.dailchampion.ViewModel.TaskDataState
@@ -199,6 +203,7 @@ LaunchedEffect(taskState.showDatePicker) {
     }
 }
 
+@SuppressLint("MissingPermission")
 @Composable
 fun AddTask(
     viewModel: MyViewModel,
@@ -206,6 +211,7 @@ fun AddTask(
 ) {
     val scrollState = rememberScrollState()
     val taskPriority = viewModel.taskPriority
+    val context  = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -298,7 +304,11 @@ fun AddTask(
             }
             Button(
                 enabled = taskState.title.isNotBlank() && taskState.todayDate.isNotBlank(),
-                onClick = { viewModel.createTask() },
+                onClick = { viewModel.createTask()
+                          if (taskState.taskPriority=="Notification"){
+                              showNotification(context = context , title = taskState.title, message = taskState.description)
+                          }
+                          },
                 modifier = Modifier.width(120.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onSurface)
             ) {

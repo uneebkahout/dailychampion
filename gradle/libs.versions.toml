@@ -60,8 +60,8 @@ androidx-navigation3-ui-android = { group = "androidx.navigation3", name = "navi
 
 #//    <============= Date Picker  & Material Dialog ===================>
 
-material-dialogs-core = { module = "io.github.vanpra.compose-material-dialogs:core", version.ref = "material-dialogs" }
 material-dialogs-datetime = { module = "io.github.vanpra.compose-material-dialogs:datetime", version.ref = "material-dialogs" }
+material-dialogs-core = { module = "io.github.vanpra.compose-material-dialogs:core", version.ref = "material-dialogs" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
