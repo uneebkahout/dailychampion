@@ -26,6 +26,7 @@ roomRuntime = "2.7.2"
 navigation3RuntimeAndroid = "1.0.0-alpha07"
 navigation3UiAndroid = "1.0.0-alpha07"
 material-dialogs = "0.9.0"
+foundation = "1.9.2"
 
 
 [libraries]
@@ -62,6 +63,7 @@ androidx-navigation3-ui-android = { group = "androidx.navigation3", name = "navi
 
 material-dialogs-datetime = { module = "io.github.vanpra.compose-material-dialogs:datetime", version.ref = "material-dialogs" }
 material-dialogs-core = { module = "io.github.vanpra.compose-material-dialogs:core", version.ref = "material-dialogs" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

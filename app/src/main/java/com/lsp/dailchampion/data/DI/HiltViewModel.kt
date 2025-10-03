@@ -1,10 +1,11 @@
 package com.lsp.dailchampion.data.DI
 
 import android.app.Application
-import android.content.Context
 import androidx.room.Room
-import com.lsp.dailchampion.data.Task.TaskDao
-import com.lsp.dailchampion.data.Task.TaskDatabase
+import com.lsp.dailchampion.data.Local.DaliChampionDatabase
+import com.lsp.dailchampion.data.Local.Expense.ExpenseDao
+import com.lsp.dailchampion.data.Local.Task.TaskDao
+
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,15 +15,17 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 object HiltViewModel {
     @Provides
-    fun provideDatabase(application: Application): TaskDatabase{
+    fun provideDatabase(application: Application): DaliChampionDatabase{
         return Room.databaseBuilder(
             application.baseContext,
-            TaskDatabase :: class.java,
+            DaliChampionDatabase :: class.java,
             "daily_champion"
         ).fallbackToDestructiveMigration().build()
     }
+
     @Provides
-    fun providesTaskDao(db: TaskDatabase) : TaskDao{
-    return  db.tasKDao();
-    }
+    fun provideTaskDao(db: DaliChampionDatabase): TaskDao = db.tasKDao()
+
+    @Provides
+    fun provideExpenseDao(db: DaliChampionDatabase): ExpenseDao = db.expenseDao()
 }

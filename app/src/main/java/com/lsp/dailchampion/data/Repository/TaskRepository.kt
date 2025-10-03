@@ -1,8 +1,8 @@
 package com.lsp.dailchampion.data.Repository
 
 import com.lsp.dailchampion.ViewModel.TaskList
-import com.lsp.dailchampion.data.Task.Task
-import com.lsp.dailchampion.data.Task.TaskDao
+import com.lsp.dailchampion.data.Local.Task.Task
+import com.lsp.dailchampion.data.Local.Task.TaskDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject

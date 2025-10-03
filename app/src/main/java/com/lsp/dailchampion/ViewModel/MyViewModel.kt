@@ -3,31 +3,24 @@ package com.lsp.dailchampion.ViewModel
 import android.annotation.SuppressLint
 import android.icu.util.Calendar
 import android.util.Log
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.room.util.copy
 import com.lsp.dailchampion.data.Repository.TaskRepository
-import com.lsp.dailchampion.data.Task.Task
-import com.lsp.dailchampion.data.Task.TaskDatabase
+import com.lsp.dailchampion.data.Local.Task.Task
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.lang.ref.Cleaner
 
 @HiltViewModel
 class MyViewModel @Inject constructor(

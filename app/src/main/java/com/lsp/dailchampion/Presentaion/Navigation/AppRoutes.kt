@@ -8,4 +8,7 @@ sealed  class AppRoutes: NavKey {
 data object  HomeScreen : AppRoutes()
 @Serializable
 data object  DailyTask : AppRoutes()
+ @Serializable
+ data object  ExpenseScreen : AppRoutes()
+
  }

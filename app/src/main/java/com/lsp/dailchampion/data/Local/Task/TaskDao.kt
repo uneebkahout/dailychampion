@@ -1,4 +1,4 @@
-package com.lsp.dailchampion.data.Task
+package com.lsp.dailchampion.data.Local.Task
 
 import androidx.room.Dao
 import androidx.room.Delete

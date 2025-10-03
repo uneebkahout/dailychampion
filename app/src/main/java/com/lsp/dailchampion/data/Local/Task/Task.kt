@@ -1,4 +1,4 @@
-package com.lsp.dailchampion.data.Task
+package com.lsp.dailchampion.data.Local.Task
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
