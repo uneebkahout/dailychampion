@@ -1,5 +1,6 @@
 package com.lsp.dailchampion.Presentaion.Screen.DailyTask
 
+import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
@@ -33,6 +34,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,7 +59,9 @@ fun TodayTask(
 ) {
     val taskList by viewModel.taskListByDate.collectAsState()
     val selectedTaskID by viewModel.selectedTaskID.collectAsState()
-
+    LaunchedEffect(taskList) {
+        Log.d("TAG","TASK LIST $taskList")
+    }
     LazyColumn(
         modifier = modifier
             .fillMaxSize()

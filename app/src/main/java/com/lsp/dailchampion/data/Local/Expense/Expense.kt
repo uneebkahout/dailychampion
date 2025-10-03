@@ -8,5 +8,6 @@ data class Expense(
     @PrimaryKey(autoGenerate = true)var  id: Int = 0,
     val expenseCategory :String ,
     val expenseAmount: Double,
-    val expenseDescription :String
+    val expenseDescription :String,
+    val date:String,
 )
