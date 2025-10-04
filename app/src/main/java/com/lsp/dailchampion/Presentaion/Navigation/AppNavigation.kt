@@ -13,7 +13,7 @@ import com.lsp.dailchampion.Presentaion.Screen.HomePage
 
 @Composable
 fun AppNavigation() {
-    val backStack = rememberNavBackStack(AppRoutes.ExpenseScreen)
+    val backStack = rememberNavBackStack(AppRoutes.HomeScreen)
 
     NavDisplay(
         backStack = backStack,
@@ -23,7 +23,8 @@ fun AppNavigation() {
                 HomePage(
                     navigateToDailyTask={
                         backStack.add(AppRoutes.DailyTask)
-                    }
+                    },
+                    navigateToExpenseScreen = {backStack.add(AppRoutes.ExpenseScreen)}
                 )
 
             }

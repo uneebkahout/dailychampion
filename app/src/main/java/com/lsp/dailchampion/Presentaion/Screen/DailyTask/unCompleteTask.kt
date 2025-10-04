@@ -49,8 +49,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.lsp.dailchampion.ViewModel.MyViewModel
-import com.lsp.dailchampion.ViewModel.TaskList
+import com.lsp.dailchampion.Presentaion.ViewModel.MyViewModel
+import com.lsp.dailchampion.Presentaion.ViewModel.TaskList
 
 @Composable
 fun TodayTask(

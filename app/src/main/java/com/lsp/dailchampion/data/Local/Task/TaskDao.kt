@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.Upsert
-import com.lsp.dailchampion.ViewModel.TaskList
+import com.lsp.dailchampion.Presentaion.ViewModel.TaskList
 import kotlinx.coroutines.flow.Flow
 
 @Dao

@@ -1,19 +1,20 @@
 package com.lsp.dailchampion.Presentaion.Screen.Expense
 
 
-import android.util.Log
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -21,22 +22,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.lsp.dailchampion.Presentaion.Screen.DailyTask.AddTask
-import com.lsp.dailchampion.Presentaion.Screen.DailyTask.CompletedTask
-import com.lsp.dailchampion.Presentaion.Screen.DailyTask.TodayTask
 import com.lsp.dailchampion.R
-import com.lsp.dailchampion.ViewModel.Expense.ExpenseList
-import com.lsp.dailchampion.ViewModel.Expense.ExpenseViewModel
-import com.lsp.dailchampion.ViewModel.MyViewModel
+import com.lsp.dailchampion.Presentaion.ViewModel.Expense.ExpenseList
+import com.lsp.dailchampion.Presentaion.ViewModel.Expense.ExpenseViewModel
 import com.lsp.dailchampion.ui.theme.Poppins
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
@@ -120,12 +119,17 @@ fun ExpenseScreen(onBack:()-> Unit) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "Daily Expense",
-                            fontSize = 20.sp,
-                            fontFamily = Poppins,
-                            fontWeight = FontWeight.Medium
-                        )
+                        Row( verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = {onBack()}) {
+                                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
+                            }
+                            Text(
+                                text = "Daily Expense",
+                                fontSize = 15.sp,
+                                fontFamily = Poppins,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                         Row (
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -206,50 +210,67 @@ fun ExpenseScreen(onBack:()-> Unit) {
     }
 }
 
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun Expenses() {
-    val expenseViewModel : ExpenseViewModel = hiltViewModel()
+    val expenseViewModel: ExpenseViewModel = hiltViewModel()
+    val state by expenseViewModel.expenseState.collectAsState()
     val expenseList by expenseViewModel.expenses.collectAsState()
-        when{
-            expenseList.isEmpty()->{
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
-                     Text(text = "No Expense Found")
-                }
 
-            }
-            else->{
-//                LazyColumn(modifier = Modifier.padding(horizontal = 10.dp)) {
-//                    items(expenseList){expense->
-//                        ExpenseTable(expense)
-//                    }
-            ExpenseTable(expenses = expenseList)
-                }
+    // Keep filtered list and total in sync with VM
+    LaunchedEffect(expenseList) {
+        expenseViewModel.setExpense(expenseList)
+    }
+
+    when {
+        state.filteredExpenses.isEmpty() -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(text = "No Expense Found")
             }
         }
+
+        else -> {
+            ExpenseTable(
+                expenses = state.filteredExpenses,
+                selectedCategory = state.selectedCategory,
+                totalExpense = state.totalExpense,
+                selectedExpense = state.selectedExpense,
+                onCategoryChange = { expenseViewModel.changeCategory(it) },
+                onEditClick = { expenseViewModel.selectExpense(it) },
+                onDeleteClick = { expenseViewModel.toggleShowExpenseDelete() },
+                onCloseDialog = { expenseViewModel.selectExpense(null) }
+            )
+            if(state.showDeleteExpense){
+                DeleteConfirmationDialog(
+                    showDialog = state.showDeleteExpense,
+                    onDismiss = {expenseViewModel.toggleShowExpenseDelete()
+                    }
+                )
+            }
+        }
+    }
+}
+
 
 @Composable
 fun ExpenseTable(
     expenses: List<ExpenseList>,
+    selectedCategory: String,
+    totalExpense: Double,
+    selectedExpense: ExpenseList?,
+    onCategoryChange: (String) -> Unit,
     onEditClick: (ExpenseList) -> Unit = {},
-    onDeleteClick: (ExpenseList) -> Unit = {}
+    onDeleteClick: () -> Unit ,
+    onCloseDialog: () -> Unit
 ) {
-    var selectedCategory by remember { mutableStateOf("All") }
-    var selectedExpense by remember { mutableStateOf<ExpenseList?>(null) }
-
     // Extract unique categories
     val categories = listOf("All") + expenses.map { it.expenseCategory }.distinct()
-
-    // Apply filter
-    val filteredExpenses = if (selectedCategory == "All") expenses
-    else expenses.filter { it.expenseCategory == selectedCategory }
-
-    // Calculate total safely
-    val totalExpense = filteredExpenses.sumOf { it.expenseAmount ?: 0.0 }
-
+    val expenseViewModel :ExpenseViewModel    =hiltViewModel()
+    val expenseState by expenseViewModel.expenseState.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding( horizontal = 12.dp)
+            .padding(horizontal = 12.dp)
     ) {
         // 🔹 Filter Dropdown
         Row(
@@ -274,7 +295,7 @@ fun ExpenseTable(
                         DropdownMenuItem(
                             text = { Text(category) },
                             onClick = {
-                                selectedCategory = category
+                                onCategoryChange(category)
                                 expanded = false
                             }
                         )
@@ -290,19 +311,19 @@ fun ExpenseTable(
                 .border(1.dp, Color.Gray)
                 .background(Color(0xFF004AAD)) // header background
         ) {
-            TableHeaderCell("Category", Modifier.weight(1.2f),)
-            TableHeaderCell("Amount", Modifier.width(120.dp), )
-            TableHeaderCell("Actions", Modifier.width(80.dp),)
+            TableHeaderCell("Category", Modifier.weight(1.2f))
+            TableHeaderCell("Amount", Modifier.width(120.dp))
+            TableHeaderCell("Actions", Modifier.width(80.dp))
         }
 
         // 🔹 Table Rows (scrollable)
         LazyColumn(
             modifier = Modifier
-                .weight(1f) // take all remaining height
+                .weight(1f)
                 .fillMaxWidth(),
             contentPadding = PaddingValues(bottom = 40.dp)
         ) {
-            items(filteredExpenses) { expense ->
+            items(expenses) { expense ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -316,21 +337,20 @@ fun ExpenseTable(
                     )
 
                     TableCell(
-                        text = "Rs. ${expense.expenseAmount ?: 0.0}",
+                        text = "Rs. ${expense.expenseAmount}",
                         modifier = Modifier.width(120.dp),
                         textColor = Color(0xFF004AAD),
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.End
                     )
 
-                    // Action Buttons (only View in table)
                     Box(
                         modifier = Modifier
                             .width(80.dp)
                             .border(1.dp, Color.Gray),
                         contentAlignment = Alignment.Center
                     ) {
-                        IconButton(onClick = { selectedExpense = expense }) {
+                        IconButton(onClick = { onEditClick(expense) }) {
                             Icon(
                                 Icons.Default.Visibility,
                                 contentDescription = "View",
@@ -340,12 +360,13 @@ fun ExpenseTable(
                     }
                 }
             }
+
+            // 🔹 Total Row
             item {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-
+                        .padding(vertical = 8.dp)
                 ) {
                     TableCell(
                         text = "TOTAL",
@@ -362,27 +383,23 @@ fun ExpenseTable(
                     )
                 }
             }
-
         }
-
-
 
     }
 
-
-    // 🔹 View Expense Dialog
+// 🔹 View Expense Dialog
     if (selectedExpense != null) {
         AlertDialog(
-            onDismissRequest = { selectedExpense = null },
+            onDismissRequest = { onCloseDialog() },
             title = {
-                Text(selectedExpense!!.expenseCategory, fontWeight = FontWeight.Bold)
+                Text(selectedExpense.expenseCategory, fontWeight = FontWeight.Bold)
             },
             text = {
                 Column {
-                    Text("Amount: Rs. ${selectedExpense!!.expenseAmount}", fontWeight = FontWeight.Bold)
+                    Text("Amount: Rs. ${selectedExpense.expenseAmount}", fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text("Description:", fontWeight = FontWeight.SemiBold)
-                    Text(selectedExpense!!.expenseDescription)
+                    Text(selectedExpense.expenseDescription)
                 }
             },
             confirmButton = {
@@ -391,18 +408,26 @@ fun ExpenseTable(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     TextButton(onClick = {
-                        onEditClick(selectedExpense!!)
-                        selectedExpense = null
+                        onEditClick(selectedExpense)
+                        onCloseDialog()
                     }) {
                         Text("Edit", color = Color(0xFF004AAD))
                     }
                     TextButton(onClick = {
-                        onDeleteClick(selectedExpense!!)
-                        selectedExpense = null
+                        onDeleteClick()
+                        expenseViewModel.updateExpenseCategory(expenseCategory = selectedExpense.expenseCategory)
+                        expenseViewModel.updateExpenseAmount(expenseAmount = selectedExpense.expenseAmount)
+                        expenseViewModel.updateExpenseDescription(expenseDescription = selectedExpense.expenseDescription)
+                        expenseViewModel.updateExpenseDate(date =expenseState.expenseDate)
+                        expenseViewModel.updateExpenseID(id = selectedExpense.id)
+
+
+
+                        onCloseDialog()
                     }) {
                         Text("Delete", color = Color.Red)
                     }
-                    TextButton(onClick = { selectedExpense = null }) {
+                    TextButton(onClick = { onCloseDialog() }) {
                         Text("Close")
                     }
                 }
@@ -410,6 +435,7 @@ fun ExpenseTable(
         )
     }
 }
+
 
 @Composable
 fun TableHeaderCell(text: String, modifier: Modifier) {
@@ -447,6 +473,241 @@ fun TableCell(
             overflow = TextOverflow.Ellipsis,
             textAlign = textAlign,
             modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+@Composable
+fun DeleteConfirmationDialog(
+    showDialog: Boolean,
+    onDismiss: () -> Unit,
+    ) {
+    val expenseViewModel : ExpenseViewModel = hiltViewModel()
+    val expenseState by expenseViewModel.expenseState.collectAsState()
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Confirm Delete") },
+            text = { Text("Are you sure you want to delete this company?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (!expenseState.deleteLoading ) {
+                            expenseViewModel.deleteExpense()
+                        }
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    ),
+                    enabled = !expenseState.deleteLoading
+                ) {
+                    if (expenseState.deleteLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .padding(end = 8.dp)
+                        )
+                        Text("Deleting...", color = Color.White)
+                    } else {
+                        Text("Delete", color = Color.White)
+                    }
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = onDismiss,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.onSurface
+                    ),
+                    enabled = !expenseState.deleteLoading
+                ) {
+                    Text("Cancel", color = Color.White)
+                }
+            }
+        )
+    }
+
+
+
+}
+
+
+
+
+
+@Composable
+fun EditExpenseDialogue() {
+
+    val focusManager = LocalFocusManager.current
+        val expenseViewModel : ExpenseViewModel = hiltViewModel()
+    val expenseState by expenseViewModel.expenseState.collectAsState()
+    if (expenseState.showEditDialogue) {
+        AlertDialog(
+            onDismissRequest = {
+                expenseViewModel.toggleEditExpenseDialogue()
+                expenseViewModel.clearState()
+            },
+            title = {
+                Text(if (expenseState.editingLoading) "Update Company" else "Add Company")
+            },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .pointerInput(Unit) {
+                            detectTapGestures(onTap = { focusManager.clearFocus() })
+                        }
+                ) {
+                    OutlinedTextField(
+                        value = uiState.companyName,
+                        onValueChange = { companyViewModel.updateCompanyName(it) },
+                        label = { Text("Company Name") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0XFF052A6C),
+                            unfocusedBorderColor = Color.Gray,
+                            disabledBorderColor = Color.LightGray,
+                            errorBorderColor = Color.Magenta
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = uiState.saleDiscount,
+                        onValueChange = { companyViewModel.updateSaleDiscount(it) },
+                        label = { Text("Sale Discount") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0XFF052A6C),
+                            unfocusedBorderColor = Color.Gray,
+                            disabledBorderColor = Color.LightGray,
+                            errorBorderColor = Color.Magenta
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = uiState.purchaseDiscount,
+                        onValueChange = { companyViewModel.updatePurchaseDiscount(it) },
+                        label = { Text("Purchase Discount") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0XFF052A6C),
+                            unfocusedBorderColor = Color.Gray,
+                            disabledBorderColor = Color.LightGray,
+                            errorBorderColor = Color.Magenta
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = uiState.description,
+                        onValueChange = { companyViewModel.updateDescription(it) },
+                        label = { Text("Description") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0XFF052A6C),
+                            unfocusedBorderColor = Color.Gray,
+                            disabledBorderColor = Color.LightGray,
+                            errorBorderColor = Color.Magenta
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // 🔹 Error / Loading messages
+                    when {
+                        uiState.isEditing -> {
+                            if (updateCompanyState is UpdateCompanyState.Error) {
+                                val error = updateCompanyState as UpdateCompanyState.Error
+                                Text(
+                                    text = error.message,
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                                LaunchedEffect(error) {
+                                    companyViewModel.clearUpdateCompanyMessage()
+                                }
+                            }
+                        }
+                        else -> {
+                            if (companyState is CompanyState.Error) {
+                                val error = companyState as CompanyState.Error
+                                Text(
+                                    text = error.message,
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                                LaunchedEffect(error) {
+                                    companyViewModel.clearAddCompanyMessage()
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                val isLoading =
+                    (expenseState.editingLoading )
+
+                Button(
+                    onClick = {
+                       expenseViewModel.updateExpense()
+                    },
+                    enabled = expenseState.expenseCategory.isNotBlank() &&
+                            expenseState.expenseAmount.toString().isNotBlank() &&
+                            expenseState.expenseDescription.isNotBlank() &&
+                            !isLoading,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.onSurface
+                    )
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .padding(end = 8.dp)
+                        )
+                        Text("Saving...", color = Color.White)
+                    } else {
+                        Text(if (expenseState.editingLoading) "Update" else "Save")
+                    }
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = {
+                        companyViewModel.toggleShowAlertDialogue()
+                        companyViewModel.clearState()
+                    },
+                    enabled = !(
+                            (uiState.isEditing && updateCompanyState is UpdateCompanyState.Loading) ||
+                                    (!uiState.isEditing && companyState is CompanyState.Loading)
+                            )
+                ) {
+                    Text("Cancel")
+                }
+            }
         )
     }
 }

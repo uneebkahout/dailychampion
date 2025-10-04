@@ -1,4 +1,4 @@
-package com.lsp.dailchampion.ViewModel
+package com.lsp.dailchampion.Presentaion.ViewModel
 
 import android.annotation.SuppressLint
 import android.icu.util.Calendar

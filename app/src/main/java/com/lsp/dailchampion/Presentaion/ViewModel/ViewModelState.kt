@@ -1,4 +1,4 @@
-package com.lsp.dailchampion.ViewModel
+package com.lsp.dailchampion.Presentaion.ViewModel
 
 import android.icu.text.CaseMap
 import androidx.compose.foundation.MutatePriority

@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Card
@@ -34,10 +33,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.lsp.dailchampion.ViewModel.MyViewModel
+import com.lsp.dailchampion.Presentaion.ViewModel.MyViewModel
 
 
-import com.lsp.dailchampion.ViewModel.TaskList
+import com.lsp.dailchampion.Presentaion.ViewModel.TaskList
 
 @Composable
 fun TaskSliderRow(tasks: List<TaskList>) {
